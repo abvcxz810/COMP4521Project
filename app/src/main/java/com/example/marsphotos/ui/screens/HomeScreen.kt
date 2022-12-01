@@ -15,37 +15,38 @@
  */
 package com.example.marsphotos.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.marsphotos.R
-import com.example.marsphotos.network.Eta
-import com.example.marsphotos.network.RouteStation
-import com.example.marsphotos.network.RouteStationList
-import com.example.marsphotos.ui.theme.MarsPhotosTheme
+import com.example.marsphotos.network.RouteData
 
 @Composable
 fun HomeScreen(
     marsUiState: MarsUiState,
+    onRouteItemClicked: (String)->Unit,
     modifier: Modifier = Modifier,
 ) {
     when (marsUiState) {
-        is MarsUiState.Success -> ResultScreen(marsUiState = marsUiState.photos,marsUiState.etaList,modifier)
+        is MarsUiState.Success -> ResultScreen1(
+            onRouteItemClicked,
+            marsUiState.etaList,
+            marsUiState.routeDataList,
+            modifier)
         is MarsUiState.Loading -> LoadingScreen(modifier)
         is MarsUiState.Error -> ErrorScreen(modifier)
     }
@@ -62,47 +63,48 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ErrorScreen(modifier: Modifier = Modifier){
-    Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()){
+fun ErrorScreen(modifier: Modifier = Modifier) {
+    Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
         Text(text = stringResource(id = R.string.loading_failed))
     }
 }
 
-/**
- * The home screen displaying result of fetching photos.
- */
-@Composable
-fun ResultScreen(marsUiState: String,etaList: List<EtaDataWithBusStopName>,modifier: Modifier = Modifier) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier.fillMaxSize()
-    ) {
-        Text(marsUiState)
-    }
-    EtaList(etaList)
+
+fun extractTime(origin: String): String {
+    return origin.substring(11, 19)
 }
 
-@Preview(showBackground = true)
+//ResultScreen for Route List Data
 @Composable
-fun ResultScreenPreview() {
-    MarsPhotosTheme {
-//        ResultScreen(stringResource(R.string.placeholder_result), listOf(), listOf())
-    }
+fun ResultScreen1(
+    onRouteItemClicked: (String)->Unit,
+    etaList: List<EtaDataWithBusStopName>,
+    routeDataList: List<RouteData>,
+    modifier: Modifier = Modifier,
+) {
+    RouteDataList(routeDataList,onRouteItemClicked)
 }
 
 @Composable
-fun EtaList(etas: List<EtaDataWithBusStopName>){
-    LazyColumn{
-        items(etas){
-            eta -> if(eta.eta.eta_seq == 1) ETAItem(eta = eta)
+fun RouteDataList(routeDataList: List<RouteData>, onRouteItemClicked: (String)->Unit) {
+    LazyColumn {
+        items(routeDataList) { routeData ->
+            Surface(modifier = Modifier.clickable { onRouteItemClicked(routeData.route) }) {
+                RouteDataItem(routeData.route,routeData.orig_tc,routeData.orig_en,routeData.dest_tc,routeData.dest_en)
+            }
         }
     }
+    Text(text = routeDataList.size.toString())
 }
 
 @Composable
-fun ETAItem(
-    eta: EtaDataWithBusStopName,
-    modifier: Modifier = Modifier
+fun RouteDataItem(
+    route: String,
+    orig_tc: String,
+    orig_en: String,
+    dest_tc:String,
+    dest_en: String,
+    modifier: Modifier = Modifier,
 ) {
 
     Card(
@@ -114,24 +116,13 @@ fun ETAItem(
         backgroundColor = Color.Gray
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
+            Text(text = route, style = MaterialTheme.typography.h1)
             Column(modifier = Modifier
                 .padding(end = 16.dp)
                 .weight(1f)) {
-                Text(text = eta.eta.route, style = MaterialTheme.typography.body1)
-                Text(text = "往${eta.eta.dest_tc}", style = MaterialTheme.typography.body1)
-                Text(text = eta.eta.seq.toString(), style = MaterialTheme.typography.body1)
-                Text(text = eta.busStopName, style = MaterialTheme.typography.body1)
+                Text(text = "由/From ${orig_tc}/${orig_en}")
+                Text(text = "往/To ${dest_tc}/${dest_en}")
             }
-            Text(text = eta.eta.dir, style = MaterialTheme.typography.body1)
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(text = eta.eta.eta_seq.toString(), style = MaterialTheme.typography.body1)
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(text = extractTime(eta.eta.eta), style = MaterialTheme.typography.body1)
-            Spacer(modifier = Modifier.width(5.dp))
         }
     }
-}
-
-fun extractTime(origin: String): String {
-    return origin.substring(11,19)
 }

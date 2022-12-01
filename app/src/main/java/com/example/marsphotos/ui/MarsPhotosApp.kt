@@ -21,43 +21,81 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.marsphotos.R
 import com.example.marsphotos.ui.screens.HomeScreen
 import com.example.marsphotos.ui.screens.MarsViewModel
+import com.example.marsphotos.ui.screens.RouteEtaScreen
+
+enum class kmbScreen() {
+    AllRouteList,
+    OneRoute,
+    Search
+}
 
 @Composable
-fun MarsPhotosApp(modifier: Modifier = Modifier) {
+fun MarsPhotosApp(
+    marsViewModel: MarsViewModel = viewModel(),
+    navController: NavHostController = rememberNavController(),
+    modifier: Modifier = Modifier,
+) {
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentScreen =
+        kmbScreen.valueOf(backStackEntry?.destination?.route ?: kmbScreen.AllRouteList.name)
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
-        bottomBar = { BottomBar() }
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it),
-            color = MaterialTheme.colors.background
+        bottomBar = { BottomBar({navController.navigate(kmbScreen.OneRoute.name)}) }
+    ) { innerPadding ->
+
+        NavHost(
+            navController = navController,
+            startDestination = kmbScreen.AllRouteList.name,
+            modifier = modifier.padding(innerPadding)
         ) {
-            val marsViewModel: MarsViewModel = viewModel()
-            HomeScreen(
-                marsUiState = marsViewModel.marsUiState
-            )
+            composable(route = kmbScreen.AllRouteList.name) {
+                HomeScreen(
+                    marsUiState = marsViewModel.marsUiState,
+                    onRouteItemClicked = {
+                        marsViewModel.getRouteEtaAndStationId(it)
+                        navController.navigate(kmbScreen.OneRoute.name)
+                    }
+                )
+            }
+            composable(route = kmbScreen.OneRoute.name) {
+                RouteEtaScreen(routeEtaUiState = marsViewModel.routeEtaUiState)
+            }
         }
     }
 }
 
 @Composable
-fun BottomBar(modifier: Modifier = Modifier){
+fun BottomBar(navigateUp: () -> Unit,modifier: Modifier = Modifier) {
     //BottomAppBar Composable
     BottomAppBar(backgroundColor = Color(0xFF0F9D58)) {
         Row(modifier = modifier.fillMaxSize()) {
-            Text(text = "hello", modifier = modifier.weight(1f))
-            Text(text = "bye", modifier = modifier.weight(1f))
+            Button(onClick = navigateUp,
+                modifier
+                    .fillMaxSize()
+                    .weight(1f)) {
+                Text(text = "bye", modifier = modifier.fillMaxSize())
+            }
+            Button(onClick = { /*TODO*/ },
+                modifier
+                    .fillMaxSize()
+                    .weight(1f)) {
+                Text(text = "hi", modifier = modifier.fillMaxSize())
+            }
         }
     }
 }

@@ -33,6 +33,9 @@ interface MarsApiService{
     @GET("v1/transport/kmb/stop")
     suspend fun getAllStationInfo() : StopInformationList
 
+    @GET("v1/transport/kmb/route/")
+    suspend fun getRouteListData() : RouteListData
+
 }
 
 object MarsApi{

@@ -21,19 +21,25 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.marsphotos.network.Eta
-import com.example.marsphotos.network.MarsApi
-import com.example.marsphotos.network.RouteStationList
-import com.example.marsphotos.network.StopInformation
+import com.example.marsphotos.network.*
 import kotlinx.coroutines.launch
 import java.io.IOException
 
 sealed interface MarsUiState {
-    data class Success(val photos: String, val etaList: List<EtaDataWithBusStopName>) :
-        MarsUiState
+    data class Success(
+        val etaList: List<EtaDataWithBusStopName>,
+        val routeDataList: List<RouteData>,
+    ) : MarsUiState
 
     object Error : MarsUiState
     object Loading : MarsUiState
+}
+
+sealed interface RouteEtaUiState {
+    data class Success(val etaList: List<EtaDataWithBusStopName>) : RouteEtaUiState
+    object Error : RouteEtaUiState
+    object Loading : RouteEtaUiState
+
 }
 
 class MarsViewModel : ViewModel() {
@@ -41,71 +47,92 @@ class MarsViewModel : ViewModel() {
     var marsUiState: MarsUiState by mutableStateOf(MarsUiState.Loading)
         private set
 
-    /**
-     * Call getMarsPhotos() on init so we can display status immediately.
-     */
+    var routeEtaUiState: RouteEtaUiState by mutableStateOf(RouteEtaUiState.Loading)
+        private set
+
+    private var allStopInformation: StopInformationList =
+        StopInformationList("", "", "", emptyList())
+
     init {
-//        getMarsPhotos()
-        getRouteEtaAndStationId()
+        getRouteEtaAndStationId("91M")
+        getAllRouteData()
     }
 
-    /**
-     * Gets Mars photos information from the Mars API
-     */
-//    fun getMarsPhotos() {
-//        val Route = "74X"
-//        viewModelScope.launch {
-//            marsUiState = try {
-//                //val listResult = MarsApi.retrofitService.getPhotos()
-//                val listResult = MarsApi.retrofitService.getRouteEta(Route)
-//                val stationlistResult = MarsApi.retrofitService.getInboundStation(Route)
-//                MarsUiState.Success("Success: ${listResult} Mars photo retrieved")
-//            } catch (e: Exception) {
-//                MarsUiState.Error
-//            }
-//        }
-//    }
 
-    fun getRouteEtaAndStationId() {
+    fun getRouteEtaAndStationId(route: String) {
+        Log.d("insideFunction2", allStopInformation.toString())
         viewModelScope.launch {
             try {
-                val route = "74X"
-                val listOfCurrentRouteEtaWithStationName: MutableList<EtaDataWithBusStopName> = mutableListOf()
+                Log.d("getAllStatInfo", allStopInformation.toString())
+                allStopInformation = MarsApi.retrofitService.getAllStationInfo()
+                val listOfCurrentRouteEtaWithStationName: MutableList<EtaDataWithBusStopName> =
+                    mutableListOf()
                 val currentRouteInboundList: MutableList<StopInformation> = mutableListOf()
                 val currentRouteOutboundList: MutableList<StopInformation> = mutableListOf()
                 val routeEtaList = MarsApi.retrofitService.getRouteEta(route)
                 val stationInboundList = MarsApi.retrofitService.getInboundStation(route)
                 val stationOutBoundList = MarsApi.retrofitService.getOutboundStation(route)
-                val allStopInformation = MarsApi.retrofitService.getAllStationInfo()
+                //allStopInformation = MarsApi.retrofitService.getAllStationInfo()
+                Log.d("getAllStatInfo", allStopInformation.toString())
                 stationInboundList.data.forEach { station ->
                     currentRouteInboundList.add(allStopInformation.data.find { it.stop == station.stop }!!)
                 }
                 stationOutBoundList.data.forEach { station ->
                     currentRouteOutboundList.add(allStopInformation.data.find { it.stop == station.stop }!!)
                 }
-                routeEtaList.data.forEach {
-                    eta ->
-                    if(eta.dir == "I"){
-                        listOfCurrentRouteEtaWithStationName.add(EtaDataWithBusStopName(currentRouteInboundList[eta.seq-1].name_tc,eta))
-                    }
-                    else{
-                        listOfCurrentRouteEtaWithStationName.add(EtaDataWithBusStopName(currentRouteOutboundList[eta.seq-1].name_tc,eta))
+                routeEtaList.data.forEach { eta ->
+                    if (eta.dir == "I") {
+                        listOfCurrentRouteEtaWithStationName.add(EtaDataWithBusStopName(
+                            currentRouteInboundList[eta.seq - 1].name_tc,
+                            eta))
+                    } else {
+                        listOfCurrentRouteEtaWithStationName.add(EtaDataWithBusStopName(
+                            currentRouteOutboundList[eta.seq - 1].name_tc,
+                            eta))
                     }
                 }
-                marsUiState = MarsUiState.Success("finally Success",listOfCurrentRouteEtaWithStationName)
+                Log.d("Tag", routeEtaList.toString()) //print debug message with "Tag" tag
+                routeEtaUiState = RouteEtaUiState.Success(listOfCurrentRouteEtaWithStationName)
             } catch (e: IOException) {
+                routeEtaUiState = RouteEtaUiState.Error
+            } catch (e: Exception) {
+                routeEtaUiState = RouteEtaUiState.Error
+            }
+        }
+    }
+
+    fun getAllStationInformation() {
+        viewModelScope.launch {
+            try {
+                allStopInformation = MarsApi.retrofitService.getAllStationInfo()
+                Log.d("getAllStationInfo", allStopInformation.toString())
+            } catch (e: Exception) {
                 marsUiState = MarsUiState.Error
             }
-            catch (e: Exception){
+        }
+    }
+
+    fun getAllRouteData() {
+        viewModelScope.launch {
+            val allRouteData = RouteListData("", "", "", emptyList())
+            try {
+                val allRouteData = MarsApi.retrofitService.getRouteListData()
+                Log.d("AllRouteData", allRouteData.data.toString())
+                marsUiState = MarsUiState.Success(emptyList(), allRouteData.data)
+
+            } catch (e: Exception) {
                 marsUiState = MarsUiState.Error
             }
+            Log.d("AllRouteData", allRouteData.data.toString())
+            Log.d("AllRouteDataSize", allRouteData.data.size.toString())
+
         }
     }
 }
 
 class EtaDataWithBusStopName(
-    val busStopName : String,
-    val eta: Eta
+    val busStopName: String,
+    val eta: Eta,
 )
 
 
