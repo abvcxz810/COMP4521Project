@@ -16,15 +16,16 @@
 
 package com.example.marsphotos.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -43,6 +44,15 @@ enum class kmbScreen() {
 }
 
 @Composable
+fun kmbTopAppBar(modifier: Modifier = Modifier) {
+    TopAppBar(title = {
+        Text(stringResource(R.string.app_name))
+    },
+        modifier = modifier
+    )
+}
+
+@Composable
 fun MarsPhotosApp(
     marsViewModel: MarsViewModel = viewModel(),
     navController: NavHostController = rememberNavController(),
@@ -54,8 +64,8 @@ fun MarsPhotosApp(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
-        bottomBar = { BottomBar({navController.navigate(kmbScreen.OneRoute.name)}) }
+        topBar = { kmbTopAppBar() },
+        bottomBar = { BottomBar({ navController.navigate(kmbScreen.OneRoute.name) }) }
     ) { innerPadding ->
 
         NavHost(
@@ -66,8 +76,8 @@ fun MarsPhotosApp(
             composable(route = kmbScreen.AllRouteList.name) {
                 HomeScreen(
                     marsUiState = marsViewModel.marsUiState,
-                    onRouteItemClicked = {
-                        marsViewModel.getRouteEtaAndStationId(it)
+                    onRouteItemClicked = { route, bound->
+                        marsViewModel.getRouteEtaAndStationId(route,bound)
                         navController.navigate(kmbScreen.OneRoute.name)
                     }
                 )
@@ -80,7 +90,7 @@ fun MarsPhotosApp(
 }
 
 @Composable
-fun BottomBar(navigateUp: () -> Unit,modifier: Modifier = Modifier) {
+fun BottomBar(navigateUp: () -> Unit, modifier: Modifier = Modifier) {
     //BottomAppBar Composable
     BottomAppBar(backgroundColor = Color(0xFF0F9D58)) {
         Row(modifier = modifier.fillMaxSize()) {

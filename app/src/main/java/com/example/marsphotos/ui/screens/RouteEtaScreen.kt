@@ -10,13 +10,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.marsphotos.network.RouteData
 
 @Composable
-fun RouteEtaScreen(routeEtaUiState: RouteEtaUiState,modifier: Modifier = Modifier){
+fun RouteEtaScreen(routeEtaUiState: RouteEtaUiState, modifier: Modifier = Modifier) {
     when (routeEtaUiState) {
         is RouteEtaUiState.Success -> RouteEtaResultScreen(
             routeEtaUiState.etaList,
+            routeEtaUiState.bound,
             modifier)
         is RouteEtaUiState.Loading -> LoadingScreen(modifier)
         is RouteEtaUiState.Error -> ErrorScreen(modifier)
@@ -29,16 +29,17 @@ fun RouteEtaScreen(routeEtaUiState: RouteEtaUiState,modifier: Modifier = Modifie
 @Composable
 fun RouteEtaResultScreen(
     etaList: List<EtaDataWithBusStopName>,
+    bound: String,
     modifier: Modifier = Modifier,
 ) {
-    EtaList(etaList)
+    EtaList(etaList, bound)
 }
 
 @Composable
-fun EtaList(etas: List<EtaDataWithBusStopName>) {
+fun EtaList(etas: List<EtaDataWithBusStopName>, bound: String) {
     LazyColumn {
         items(etas) { eta ->
-            if (eta.eta.eta_seq == 1) ETAItem(eta = eta)
+            if (eta.eta.eta_seq == 1 && eta.eta.dir == bound) ETAItem(eta = eta)
         }
     }
 }

@@ -42,13 +42,12 @@ import com.example.marsphotos.network.RouteData
 @Composable
 fun HomeScreen(
     marsUiState: MarsUiState,
-    onRouteItemClicked: (String)->Unit,
+    onRouteItemClicked: (String,String)->Unit,
     modifier: Modifier = Modifier,
 ) {
     when (marsUiState) {
         is MarsUiState.Success -> ResultScreen1( 
             onRouteItemClicked,
-            marsUiState.etaList,
             marsUiState.routeDataList,
             modifier)
         is MarsUiState.Loading -> LoadingScreen(modifier)
@@ -81,8 +80,7 @@ fun extractTime(origin: String): String {
 //ResultScreen for Route List Data
 @Composable
 fun ResultScreen1(
-    onRouteItemClicked: (String)->Unit,
-    etaList: List<EtaDataWithBusStopName>,
+    onRouteItemClicked: (String,String)->Unit,
     routeDataList: List<RouteData>,
     modifier: Modifier = Modifier,
 ) {
@@ -141,7 +139,7 @@ fun SearchView(
 }
 
 @Composable
-fun RouteDataList(routeDataList: List<RouteData>, onRouteItemClicked: (String)->Unit,  state: MutableState<TextFieldValue>) {
+fun RouteDataList(routeDataList: List<RouteData>, onRouteItemClicked: (String,String)->Unit,  state: MutableState<TextFieldValue>) {
     var filteredRoutes: ArrayList<RouteData>
     LazyColumn {
         val searchedRoute = state.value.text
@@ -150,19 +148,19 @@ fun RouteDataList(routeDataList: List<RouteData>, onRouteItemClicked: (String)->
             else{
                 val resultList = ArrayList<RouteData>()
                 for (route in routeDataList){
-                    if (route.route.contains(searchedRoute)){
+                    if (route.route.startsWith(searchedRoute,ignoreCase = true)){
                         resultList.add(route)
                     }
             }
                 resultList
             }
+
         items(filteredRoutes) { routeData ->
-            Surface(modifier = Modifier.clickable { onRouteItemClicked(routeData.route) }) {
+            Surface(modifier = Modifier.clickable { onRouteItemClicked(routeData.route,routeData.bound) }) {
                 RouteDataItem(routeData.route,routeData.orig_tc,routeData.orig_en,routeData.dest_tc,routeData.dest_en)
             }
         }
     }
-    Text(text = routeDataList.size.toString())
 }
 
 @Composable
