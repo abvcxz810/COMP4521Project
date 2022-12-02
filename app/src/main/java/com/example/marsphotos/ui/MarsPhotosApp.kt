@@ -33,6 +33,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.marsphotos.R
+import com.example.marsphotos.ui.screens.Bookmark
 import com.example.marsphotos.ui.screens.HomeScreen
 import com.example.marsphotos.ui.screens.MarsViewModel
 import com.example.marsphotos.ui.screens.RouteEtaScreen
@@ -40,7 +41,8 @@ import com.example.marsphotos.ui.screens.RouteEtaScreen
 enum class kmbScreen() {
     AllRouteList,
     OneRoute,
-    Search
+    Search,
+    Bookmark
 }
 
 @Composable
@@ -65,7 +67,7 @@ fun MarsPhotosApp(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = { kmbTopAppBar() },
-        bottomBar = { BottomBar({ navController.navigate(kmbScreen.OneRoute.name) }) }
+        bottomBar = { BottomBar({ navController.navigate(kmbScreen.Bookmark.name) }) }
     ) { innerPadding ->
 
         NavHost(
@@ -85,6 +87,10 @@ fun MarsPhotosApp(
             composable(route = kmbScreen.OneRoute.name) {
                 RouteEtaScreen(routeEtaUiState = marsViewModel.routeEtaUiState)
             }
+
+            composable(route = kmbScreen.Bookmark.name){
+                Bookmark(routeEtaUiState = marsViewModel.routeEtaUiState)
+            }
         }
     }
 }
@@ -98,7 +104,7 @@ fun BottomBar(navigateUp: () -> Unit, modifier: Modifier = Modifier) {
                 modifier
                     .fillMaxSize()
                     .weight(1f)) {
-                Text(text = "bye", modifier = modifier.fillMaxSize())
+                Text(text = "Bookmarks", modifier = modifier.fillMaxSize())
             }
             Button(onClick = { /*TODO*/ },
                 modifier
