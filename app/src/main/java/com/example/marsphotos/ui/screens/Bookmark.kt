@@ -1,6 +1,8 @@
 package com.example.marsphotos.ui.screens
 
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,12 +12,13 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 
-// Temp global list for bookmarks
-// Currently testing some storage methods, will replace later
-val markedStops = mutableListOf<EtaDataWithBusStopName>()
+var markedStops = mutableListOf<EtaDataWithBusStopName>()
 
 
 @Composable
@@ -31,7 +34,7 @@ fun Bookmark(routeEtaUiState: RouteEtaUiState){
 @Composable
 fun BookmarkList(etaList: List<EtaDataWithBusStopName>){
     // Find the bookmarked stop ETA info and put in column
-    if (markedStops.isNotEmpty()) {
+    if (markedStops.isNotEmpty() && etaList.isNotEmpty()) {
         val searchedStops = mutableListOf<EtaDataWithBusStopName>()
 
         markedStops.forEach { stops ->
@@ -43,8 +46,10 @@ fun BookmarkList(etaList: List<EtaDataWithBusStopName>){
             }!!)
         }
         LazyColumn {
-            items(searchedStops) { eta ->
-                ETAItem(eta = eta)
+            if (searchedStops.isNotEmpty()) {
+                items(searchedStops) { eta ->
+                    ETAItem(eta = eta)
+                }
             }
         }
     }
@@ -62,3 +67,20 @@ fun BookmarkList(etaList: List<EtaDataWithBusStopName>){
             )
         }
 }
+
+
+fun loadData(context: Context){
+    val sharedPreferences = context.getSharedPreferences("shared preference", Context.MODE_PRIVATE)
+    val gson = Gson()
+    val json = sharedPreferences.getString("stop list", null)
+
+    markedStops = if (json == null){
+        mutableListOf<EtaDataWithBusStopName>()
+    }
+    else{
+        gson.fromJson(json)
+    }
+
+}
+
+inline fun <reified T> Gson.fromJson(json: String): T = fromJson<T>(json, object: TypeToken<T>() {}.type)

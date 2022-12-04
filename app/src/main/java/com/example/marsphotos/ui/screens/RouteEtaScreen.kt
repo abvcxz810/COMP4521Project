@@ -1,5 +1,9 @@
 package com.example.marsphotos.ui.screens
 
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.google.gson.Gson
 
 @Composable
 fun RouteEtaScreen(routeEtaUiState: RouteEtaUiState, modifier: Modifier = Modifier) {
@@ -54,6 +59,7 @@ fun ETAItem(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+
     Card(
         modifier = modifier
             .wrapContentHeight()
@@ -63,12 +69,31 @@ fun ETAItem(
         backgroundColor = Color.Gray,
         // Adds the item to the bookmark stop list in Bookmark.kt
         onClick = {
-            if (!markedStops.contains(eta)) {
+            var contains = false
+            if (markedStops.isNotEmpty()){
+                for (stops in markedStops){
+                    if (eta.eta.route == stops.eta.route &&
+                        eta.eta.dir == stops.eta.dir &&
+                        eta.eta.seq == stops.eta.seq){
+                        contains = true
+                    }
+                }
+            }
+            if (!contains) {
                 markedStops.add(eta)
+                saveData(context)
                 Toast.makeText(context, "Stop bookmarked", Toast.LENGTH_SHORT).show()
             }
             else {
-                markedStops.remove(eta)
+                for (stops in markedStops){
+                    if (eta.eta.route == stops.eta.route &&
+                        eta.eta.dir == stops.eta.dir &&
+                        eta.eta.seq == stops.eta.seq){
+                        markedStops.remove(stops)
+                        break
+                    }
+                }
+                saveData(context)
                 Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show()
             }
         }
@@ -90,4 +115,14 @@ fun ETAItem(
             Spacer(modifier = Modifier.width(5.dp))
         }
     }
+}
+
+
+fun saveData(context: Context){
+    val sharedPreferences = context.getSharedPreferences("shared preference", Context.MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+    val gson = Gson()
+    val json = gson.toJson(markedStops)
+    editor.putString("stop list",json)
+    editor.apply()
 }

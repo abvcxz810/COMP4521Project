@@ -20,11 +20,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.marsphotos.ui.MarsPhotosApp
+import com.example.marsphotos.ui.screens.loadData
 import com.example.marsphotos.ui.theme.MarsPhotosTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        loadData(this)
         setContent {
             MarsPhotosTheme {
                 MarsPhotosApp()
