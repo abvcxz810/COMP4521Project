@@ -22,8 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marsphotos.network.*
+import com.example.marsphotos.ui.kmbScreen
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 sealed interface MarsUiState {
     data class Success(
@@ -51,6 +54,9 @@ class MarsViewModel : ViewModel() {
     var routeEtaUiState: RouteEtaUiState by mutableStateOf(RouteEtaUiState.Loading)
         private set
 
+    var topBarUiState : String by mutableStateOf("Welcome")
+        private set
+
     private var allStopInformation: StopInformationList =
         StopInformationList("", "", "", emptyList())
 
@@ -60,20 +66,20 @@ class MarsViewModel : ViewModel() {
     }
 
 
-    fun getRouteEtaAndStationId(route: String, bound :String) {
+    fun getRouteEtaAndStationId(route: String, bound: String) {
         Log.d("insideFunction2", allStopInformation.toString())
         routeEtaUiState = RouteEtaUiState.Loading
+        updateTopBarUIByPassingString("Loading")
         viewModelScope.launch {
             try {
-                //Log.d("getAllStatInfo", allStopInformation.toString())
-                //allStopInformation = MarsApi.retrofitService.getAllStationInfo()
                 val listOfCurrentRouteEtaWithStationName: MutableList<EtaDataWithBusStopName> =
                     mutableListOf()
                 val currentRouteInboundList: MutableList<StopInformation> = mutableListOf()
                 val currentRouteOutboundList: MutableList<StopInformation> = mutableListOf()
                 val routeEtaList = MarsApi.retrofitService.getRouteEta(route)
-                val stationInboundList = MarsApi.retrofitService.getInboundStation(route)
-                val stationOutBoundList = MarsApi.retrofitService.getOutboundStation(route)
+                Log.d("Route", routeEtaList.toString())
+                val stationInboundList = MarsApi.retrofitService.getRouteStation(route, "inbound")
+                val stationOutBoundList = MarsApi.retrofitService.getRouteStation(route, "outbound")
                 stationInboundList.data.forEach { station ->
                     currentRouteInboundList.add(allStopInformation.data.find { it.stop == station.stop }!!)
                 }
@@ -92,7 +98,9 @@ class MarsViewModel : ViewModel() {
                     }
                 }
                 Log.d("Tag", routeEtaList.toString()) //print debug message with "Tag" tag
-                routeEtaUiState = RouteEtaUiState.Success(listOfCurrentRouteEtaWithStationName,bound)
+                routeEtaUiState =
+                    RouteEtaUiState.Success(listOfCurrentRouteEtaWithStationName, bound)
+                updateTopBarUIByPassingString((routeEtaUiState as RouteEtaUiState.Success).etaList[0].eta.route)
             } catch (e: IOException) {
                 routeEtaUiState = RouteEtaUiState.Error
             } catch (e: Exception) {
@@ -118,7 +126,8 @@ class MarsViewModel : ViewModel() {
             try {
                 val allRouteData = MarsApi.retrofitService.getRouteListData()
                 Log.d("AllRouteData", allRouteData.data.toString())
-                marsUiState = MarsUiState.Success(allRouteData.data.filter { it.service_type=="1" })
+                marsUiState =
+                    MarsUiState.Success(allRouteData.data.filter { it.service_type == "1" })
 
             } catch (e: Exception) {
                 marsUiState = MarsUiState.Error
@@ -128,6 +137,10 @@ class MarsViewModel : ViewModel() {
 
         }
     }
+
+    fun updateTopBarUIByPassingString(message: String){
+        topBarUiState = message
+    }
 }
 
 class EtaDataWithBusStopName(
@@ -135,4 +148,17 @@ class EtaDataWithBusStopName(
     val eta: Eta,
 )
 
+fun extractTime(origin: String): String {
+    return origin.substring(11, 19)
+}
 
+fun getTimeDiff(eta: String) : String {
+    val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val date: Date = format.parse(eta)
+    val diff = date.getTime() - Date().getTime()
+    val min_diff = diff/1000/60
+    if(min_diff <= 0.01){
+        return "-"
+    }
+    else return min_diff.toString()
+}

@@ -72,11 +72,6 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
     }
 }
 
-
-fun extractTime(origin: String): String {
-    return origin.substring(11, 19)
-}
-
 //ResultScreen for Route List Data
 @Composable
 fun ResultScreen1(
@@ -182,7 +177,7 @@ fun RouteDataItem(
         backgroundColor = Color.Gray
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
-            Text(text = route, style = MaterialTheme.typography.h1)
+            Text(text = route, style = MaterialTheme.typography.h3)
             Column(modifier = Modifier
                 .padding(end = 16.dp)
                 .weight(1f)) {

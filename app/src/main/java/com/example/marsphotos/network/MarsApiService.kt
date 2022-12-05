@@ -9,7 +9,6 @@ import retrofit2.http.Path
 
 
 private const val BASE_URL = "https://data.etabus.gov.hk"
-private const val BASE_URL2 = "https://android-kotlin-fun-mars-server.appspot.com"
 
 private val retrofit = Retrofit.Builder()
     .addConverterFactory(Json.asConverterFactory(MediaType.get("application/json")))
@@ -17,18 +16,14 @@ private val retrofit = Retrofit.Builder()
     .build()
 
 interface MarsApiService{
-    //@GET("photos")
     @GET("v1/transport/kmb/eta/6D582F3C571E5E9C/91M/1")
-    suspend fun getPhotos() : MarsPhoto
+    suspend fun getPhotos() : RouteEta
 
     @GET("v1/transport/kmb/route-eta/{route}/1")
-    suspend fun getRouteEta(@Path("route") route:String ) : MarsPhoto
+    suspend fun getRouteEta(@Path("route") route:String ) : RouteEta
 
-    @GET("v1/transport/kmb/route-stop/{route}/inbound/1")
-    suspend fun getInboundStation(@Path("route") route: String) : RouteStationList
-
-    @GET("v1/transport/kmb/route-stop/{route}/outbound/1")
-    suspend fun getOutboundStation(@Path("route") route :String) : RouteStationList
+    @GET("v1/transport/kmb/route-stop/{route}/{bound}/1")
+    suspend fun getRouteStation(@Path("route") route: String, @Path("bound") bound :String) : RouteStationList
 
     @GET("v1/transport/kmb/stop")
     suspend fun getAllStationInfo() : StopInformationList

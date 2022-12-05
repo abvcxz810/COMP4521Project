@@ -1,9 +1,9 @@
 package com.example.marsphotos.ui.screens
 
+import android.util.Log
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import java.text.SimpleDateFormat
+import java.util.*
 import com.google.gson.Gson
 
 @Composable
@@ -102,17 +104,14 @@ fun ETAItem(
             Column(modifier = Modifier
                 .padding(end = 16.dp)
                 .weight(1f)) {
-                Text(text = eta.eta.route, style = MaterialTheme.typography.body1)
-                Text(text = "往${eta.eta.dest_tc}", style = MaterialTheme.typography.body1)
-                Text(text = eta.eta.seq.toString(), style = MaterialTheme.typography.body1)
+                Text(text = (eta.eta.seq).toString(), style = MaterialTheme.typography.body1)
                 Text(text = eta.busStopName, style = MaterialTheme.typography.body1)
             }
-            Text(text = eta.eta.dir, style = MaterialTheme.typography.body1)
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(text = eta.eta.eta_seq.toString(), style = MaterialTheme.typography.body1)
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(text = extractTime(eta.eta.eta!!), style = MaterialTheme.typography.body1)
-            Spacer(modifier = Modifier.width(5.dp))
+            Column(modifier = Modifier.weight(2f)) {
+                Text(text = "${eta.eta.eta?.let { extractTime(it) }?:eta.eta.rmk_tc}mins", style = MaterialTheme.typography.body1)
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = "${eta.eta.eta?.let { getTimeDiff(it) }?:"-"}mins",style = MaterialTheme.typography.body1)
+            }
         }
     }
 }

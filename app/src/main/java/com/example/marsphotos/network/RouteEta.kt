@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 //)
 
 @Serializable
-data class MarsPhoto(
+data class RouteEta(
     val type: String = "", //The corresponding API that returns the data
     val version: String = "",//The version number of the JSON returned.
     val generated_timestamp: String = "",//The timestamp of the initial generated time of the response before it is cached.

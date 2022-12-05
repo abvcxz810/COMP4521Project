@@ -16,11 +16,18 @@
 
 package com.example.marsphotos.ui
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,24 +40,34 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.marsphotos.R
-import com.example.marsphotos.ui.screens.Bookmark
-import com.example.marsphotos.ui.screens.HomeScreen
-import com.example.marsphotos.ui.screens.MarsViewModel
-import com.example.marsphotos.ui.screens.RouteEtaScreen
+import com.example.marsphotos.ui.screens.*
 
 enum class kmbScreen() {
     AllRouteList,
     OneRoute,
-    Search,
     Bookmark
 }
 
 @Composable
-fun kmbTopAppBar(modifier: Modifier = Modifier) {
-    TopAppBar(title = {
-        Text(stringResource(R.string.app_name))
-    },
-        modifier = modifier
+fun KmbAppBar(
+    canNavigateBack: Boolean,
+    topBarUiState: String,
+    navigateUp: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    TopAppBar(
+        title = { Text(topBarUiState) },
+        modifier = modifier,
+        navigationIcon = {
+            if (canNavigateBack) {
+                IconButton(onClick = navigateUp) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back_button)
+                    )
+                }
+            }
+        }
     )
 }
 
@@ -66,7 +83,13 @@ fun MarsPhotosApp(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        topBar = { kmbTopAppBar() },
+        topBar = {
+                KmbAppBar(
+                    canNavigateBack = navController.previousBackStackEntry != null,
+                    topBarUiState = marsViewModel.topBarUiState,
+                    navigateUp = { navController.navigateUp() },
+                )
+        },
         bottomBar = { BottomBar({ navController.navigate(kmbScreen.Bookmark.name) }) }
     ) { innerPadding ->
 
@@ -76,6 +99,7 @@ fun MarsPhotosApp(
             modifier = modifier.padding(innerPadding)
         ) {
             composable(route = kmbScreen.AllRouteList.name) {
+                marsViewModel.updateTopBarUIByPassingString("Welcome")
                 HomeScreen(
                     marsUiState = marsViewModel.marsUiState,
                     onRouteItemClicked = { route, bound->
@@ -85,10 +109,16 @@ fun MarsPhotosApp(
                 )
             }
             composable(route = kmbScreen.OneRoute.name) {
+                marsViewModel.updateTopBarUIByPassingString(when (marsViewModel.routeEtaUiState) {
+                    is RouteEtaUiState.Success -> "${(marsViewModel.routeEtaUiState as RouteEtaUiState.Success).etaList[0].eta.route} 往 ${(marsViewModel.routeEtaUiState as RouteEtaUiState.Success).etaList[0].eta.dest_tc}"
+                    is RouteEtaUiState.Loading ->  "Loading"
+                    is RouteEtaUiState.Error -> "Error"
+                })
                 RouteEtaScreen(routeEtaUiState = marsViewModel.routeEtaUiState)
             }
 
             composable(route = kmbScreen.Bookmark.name){
+                marsViewModel.updateTopBarUIByPassingString("Bookmark")
                 Bookmark(routeEtaUiState = marsViewModel.routeEtaUiState)
             }
         }
@@ -104,7 +134,8 @@ fun BottomBar(navigateUp: () -> Unit, modifier: Modifier = Modifier) {
                 modifier
                     .fillMaxSize()
                     .weight(1f)) {
-                Text(text = "Bookmarks", modifier = modifier.fillMaxSize())
+                Text(text = "Bookmarks")
+                Icon(imageVector = Icons.Outlined.Star, contentDescription = "Icon")
             }
             Button(onClick = { /*TODO*/ },
                 modifier
