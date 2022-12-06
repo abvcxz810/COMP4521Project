@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.marsphotos.R
 import com.example.marsphotos.network.RouteData
@@ -177,12 +178,19 @@ fun RouteDataItem(
         backgroundColor = Color.Gray
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
-            Text(text = route, style = MaterialTheme.typography.h3)
+            Column(modifier = modifier,  verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally){
+                Text(text = "$route ",
+                    style = MaterialTheme.typography.h3,
+                    )
+            }
+            Spacer(modifier = Modifier.width(5.dp))
             Column(modifier = Modifier
                 .padding(end = 16.dp)
-                .weight(1f)) {
-                Text(text = "由/From ${orig_tc}/${orig_en}")
-                Text(text = "往/To ${dest_tc}/${dest_en}")
+                ) {
+                Text(text = "由 $orig_tc")
+                Text(text = "往 $dest_tc")
+                Text(text = "From $orig_en")
+                Text(text = "To /${dest_en}")
             }
         }
     }

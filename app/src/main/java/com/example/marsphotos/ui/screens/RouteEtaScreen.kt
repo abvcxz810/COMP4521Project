@@ -108,9 +108,7 @@ fun ETAItem(
                 Text(text = eta.busStopName, style = MaterialTheme.typography.body1)
             }
             Column(modifier = Modifier.weight(2f)) {
-                Text(text = "${eta.eta.eta?.let { extractTime(it) }?:eta.eta.rmk_tc}mins", style = MaterialTheme.typography.body1)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "${eta.eta.eta?.let { getTimeDiff(it) }?:"-"}mins",style = MaterialTheme.typography.body1)
+                Text(text = "${eta.eta.eta?.let { getTimeDiff(it) }?:"-"} 分鐘/mins (${eta.eta.eta?.let { extractTime(it) }?:eta.eta.rmk_tc})",style = MaterialTheme.typography.body1)
             }
         }
     }

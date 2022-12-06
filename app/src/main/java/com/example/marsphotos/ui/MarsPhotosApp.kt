@@ -90,7 +90,10 @@ fun MarsPhotosApp(
                     navigateUp = { navController.navigateUp() },
                 )
         },
-        bottomBar = { BottomBar({ navController.navigate(kmbScreen.Bookmark.name) }) }
+        bottomBar = { BottomBar({
+            if (currentScreen != kmbScreen.Bookmark) navController.navigate(kmbScreen.Bookmark.name)
+            else navController.navigate(kmbScreen.AllRouteList.name)
+        }) }
     ) { innerPadding ->
 
         NavHost(
@@ -135,8 +138,8 @@ fun BottomBar(navigateUp: () -> Unit, modifier: Modifier = Modifier) {
                 modifier
                     .fillMaxSize()
                     .weight(1f)) {
-                Text(text = "Bookmarks")
                 Icon(imageVector = Icons.Outlined.Star, contentDescription = "Icon")
+                Text(text = "Bookmarks")
             }
             Button(onClick = { /*TODO*/ },
                 modifier
