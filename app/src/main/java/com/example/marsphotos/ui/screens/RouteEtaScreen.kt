@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.marsphotos.network.RouteStation
 import java.text.SimpleDateFormat
 import java.util.*
 import com.google.gson.Gson
@@ -27,6 +28,7 @@ fun RouteEtaScreen(routeEtaUiState: RouteEtaUiState, modifier: Modifier = Modifi
         is RouteEtaUiState.Success -> RouteEtaResultScreen(
             routeEtaUiState.etaList,
             routeEtaUiState.bound,
+            if (routeEtaUiState.bound == "O") routeEtaUiState.outboundList else routeEtaUiState.inboundList,
             modifier)
         is RouteEtaUiState.Loading -> LoadingScreen(modifier)
         is RouteEtaUiState.Error -> ErrorScreen(modifier)
@@ -40,16 +42,17 @@ fun RouteEtaScreen(routeEtaUiState: RouteEtaUiState, modifier: Modifier = Modifi
 fun RouteEtaResultScreen(
     etaList: List<EtaDataWithBusStopName>,
     bound: String,
+    stationList: List<RouteStation>,
     modifier: Modifier = Modifier,
 ) {
-    EtaList(etaList, bound)
+    EtaList(etaList, bound, stationList)
 }
 
 @Composable
-fun EtaList(etas: List<EtaDataWithBusStopName>, bound: String) {
+fun EtaList(etas: List<EtaDataWithBusStopName>, bound: String, stationList: List<RouteStation>) {
     LazyColumn {
         items(etas) { eta ->
-            if (eta.eta.eta_seq == 1 && eta.eta.dir == bound) ETAItem(eta = eta)
+            if (eta.eta.eta_seq == 1 && eta.eta.dir == bound) ETAItem(eta = eta, stationList = stationList)
         }
     }
 }
@@ -58,6 +61,7 @@ fun EtaList(etas: List<EtaDataWithBusStopName>, bound: String) {
 @Composable
 fun ETAItem(
     eta: EtaDataWithBusStopName,
+    stationList: List<RouteStation>,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -74,27 +78,23 @@ fun ETAItem(
             var contains = false
             if (markedStops.isNotEmpty()){
                 for (stops in markedStops){
-                    if (eta.eta.route == stops.eta.route &&
-                        eta.eta.dir == stops.eta.dir &&
-                        eta.eta.seq == stops.eta.seq){
+                    if (eta.eta.route == stops.routeStation.route &&
+                        eta.eta.dir == stops.routeStation.bound &&
+                        eta.eta.seq.toString() == stops.routeStation.seq){
                         contains = true
-                    }
-                }
-            }
-            if (!contains) {
-                markedStops.add(eta)
-                saveData(context)
-                Toast.makeText(context, "Stop bookmarked", Toast.LENGTH_SHORT).show()
-            }
-            else {
-                for (stops in markedStops){
-                    if (eta.eta.route == stops.eta.route &&
-                        eta.eta.dir == stops.eta.dir &&
-                        eta.eta.seq == stops.eta.seq){
                         markedStops.remove(stops)
                         break
                     }
                 }
+            }
+            if (!contains) {
+                markedStops.add(StationInfoWithName(eta.busStopName, stationList.find{
+                    it.route == eta.eta.route && it.bound == eta.eta.dir && it.seq == eta.eta.seq.toString()
+                }!!))
+                saveData(context)
+                Toast.makeText(context, "Stop bookmarked", Toast.LENGTH_SHORT).show()
+            }
+            else {
                 saveData(context)
                 Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show()
             }

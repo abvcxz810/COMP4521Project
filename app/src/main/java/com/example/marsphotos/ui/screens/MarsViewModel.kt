@@ -38,11 +38,25 @@ sealed interface MarsUiState {
 }
 
 sealed interface RouteEtaUiState {
-    data class Success(val etaList: List<EtaDataWithBusStopName>, val bound: String) :
+    data class Success(
+        val etaList: List<EtaDataWithBusStopName>,
+        val bound: String,
+        val inboundList: List<RouteStation>,
+        val outboundList: List<RouteStation>) :
         RouteEtaUiState
 
     object Error : RouteEtaUiState
     object Loading : RouteEtaUiState
+
+}
+
+sealed interface StopEtaUiState {
+    data class Success(
+        val bookmarkList: List<StopEtaWithName>) :
+        StopEtaUiState
+
+    object Error : StopEtaUiState
+    object Loading : StopEtaUiState
 
 }
 
@@ -55,6 +69,9 @@ class MarsViewModel : ViewModel() {
         private set
 
     var topBarUiState : String by mutableStateOf("Welcome")
+        private set
+
+    var stopEtaUiState: StopEtaUiState by mutableStateOf(StopEtaUiState.Loading)
         private set
 
     private var allStopInformation: StopInformationList =
@@ -98,8 +115,9 @@ class MarsViewModel : ViewModel() {
                     }
                 }
                 Log.d("Tag", routeEtaList.toString()) //print debug message with "Tag" tag
+
                 routeEtaUiState =
-                    RouteEtaUiState.Success(listOfCurrentRouteEtaWithStationName, bound)
+                    RouteEtaUiState.Success(listOfCurrentRouteEtaWithStationName, bound, stationInboundList.data, stationOutBoundList.data)
                 updateTopBarUIByPassingString((routeEtaUiState as RouteEtaUiState.Success).etaList[0].eta.route)
             } catch (e: IOException) {
                 routeEtaUiState = RouteEtaUiState.Error
@@ -141,7 +159,43 @@ class MarsViewModel : ViewModel() {
     fun updateTopBarUIByPassingString(message: String){
         topBarUiState = message
     }
+
+    // Function to get the ETA for bookmarked items
+    fun getBookmarkEta() {
+        stopEtaUiState = StopEtaUiState.Loading
+        updateTopBarUIByPassingString("Loading")
+        viewModelScope.launch {
+            try {
+                // For bookmarks
+                val stopEtaList: MutableList<StopEtaWithName> = mutableListOf()
+                if (markedStops.isNotEmpty()){
+                    for (stops in markedStops){
+                        val getETA = MarsApi.retrofitService.getStopETA(stops.routeStation.stop, stops.routeStation.route)
+                        stopEtaList.add(StopEtaWithName(stops.busStopName,getETA.data[0]))
+                    }
+                }
+
+                Log.i("test bookmark", stopEtaList.toString())
+                stopEtaUiState = StopEtaUiState.Success(stopEtaList)
+
+            } catch (e: IOException) {
+                stopEtaUiState = StopEtaUiState.Error
+            } catch (e: Exception) {
+                stopEtaUiState = StopEtaUiState.Error
+            }
+        }
+    }
 }
+
+class StationInfoWithName(
+    val busStopName: String,
+    val routeStation: RouteStation
+)
+
+class StopEtaWithName(
+    val busStopName: String,
+    val stopEta: StopEta
+)
 
 class EtaDataWithBusStopName(
     val busStopName: String,

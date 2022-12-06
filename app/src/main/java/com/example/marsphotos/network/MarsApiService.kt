@@ -31,6 +31,8 @@ interface MarsApiService{
     @GET("v1/transport/kmb/route/")
     suspend fun getRouteListData() : RouteListData
 
+    @GET("v1/transport/kmb/eta/{stop_id}/{route}/1")
+    suspend fun getStopETA(@Path("stop_id") stop_id: String, @Path("route") route: String): StopEtaList
 }
 
 object MarsApi{

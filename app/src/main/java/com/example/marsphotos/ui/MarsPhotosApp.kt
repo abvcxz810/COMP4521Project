@@ -118,8 +118,9 @@ fun MarsPhotosApp(
             }
 
             composable(route = kmbScreen.Bookmark.name){
+                if (markedStops.isNotEmpty()) marsViewModel.getBookmarkEta()
                 marsViewModel.updateTopBarUIByPassingString("Bookmark")
-                Bookmark(routeEtaUiState = marsViewModel.routeEtaUiState)
+                Bookmark(marsViewModel)
             }
         }
     }

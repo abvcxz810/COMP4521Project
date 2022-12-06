@@ -1,54 +1,49 @@
 package com.example.marsphotos.ui.screens
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import android.widget.Toast
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Card
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 
-var markedStops = mutableListOf<EtaDataWithBusStopName>()
+var markedStops = mutableListOf<StationInfoWithName>()
 
 
 @Composable
-fun Bookmark(routeEtaUiState: RouteEtaUiState){
-    when (routeEtaUiState){
-        is RouteEtaUiState.Success -> BookmarkList(routeEtaUiState.etaList)
-        is RouteEtaUiState.Loading -> LoadingScreen()
-        is RouteEtaUiState.Error -> ErrorScreen()
+fun Bookmark(marsViewModel: MarsViewModel){
+    when (marsViewModel.stopEtaUiState){
+        is StopEtaUiState.Success -> BookmarkList((marsViewModel.stopEtaUiState as StopEtaUiState.Success).bookmarkList)
+        is StopEtaUiState.Loading -> LoadingScreen()
+        is StopEtaUiState.Error -> ErrorScreen()
     }
-
 }
 
+@SuppressLint("CoroutineCreationDuringComposition", "MutableCollectionMutableState")
 @Composable
-fun BookmarkList(etaList: List<EtaDataWithBusStopName>){
+fun BookmarkList(bookmarkList: List<StopEtaWithName>){
     // Find the bookmarked stop ETA info and put in column
-    if (markedStops.isNotEmpty() && etaList.isNotEmpty()) {
-        val searchedStops = mutableListOf<EtaDataWithBusStopName>()
-
-        markedStops.forEach { stops ->
-            searchedStops.add(etaList.find{
-                it.eta.route == stops.eta.route &&
-                        it.eta.dir == stops.eta.dir &&
-                        it.eta.seq == stops.eta.seq &&
-                        it.eta.eta_seq == 1
-            }!!)
-        }
+    if (markedStops.isNotEmpty()){
         LazyColumn {
-            if (searchedStops.isNotEmpty()) {
-                items(searchedStops) { eta ->
-                    ETAItem(eta = eta)
+            if (bookmarkList.isNotEmpty()) {
+                items(bookmarkList) { eta ->
+                    BookmarkItem(eta = eta)
                 }
             }
         }
@@ -68,6 +63,50 @@ fun BookmarkList(etaList: List<EtaDataWithBusStopName>){
         }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun BookmarkItem(
+    eta: StopEtaWithName,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    Card(
+        modifier = modifier
+            .wrapContentHeight()
+            .fillMaxWidth()
+            .padding(8.dp),
+        elevation = 2.dp,
+        backgroundColor = Color.Gray,
+
+        // Removes the clicked item
+        onClick = {
+            for (stops in markedStops){
+                if (eta.stopEta.route == stops.routeStation.route &&
+                    eta.stopEta.dir == stops.routeStation.bound &&
+                    eta.stopEta.seq.toString() == stops.routeStation.seq){
+                    markedStops.remove(stops)
+                    Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show()
+                    break
+                }
+            }
+        }
+
+    ) {
+        Row(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier
+                .padding(end = 16.dp)
+                .weight(1f)) {
+                Text(text = (eta.stopEta.route), style = MaterialTheme.typography.h6)
+                Text(text = eta.busStopName, style = MaterialTheme.typography.body1)
+            }
+            Column(modifier = Modifier.weight(2f)) {
+                Text(text = "${eta.stopEta.eta?.let { extractTime(it) }?:eta.stopEta.rmk_tc}mins", style = MaterialTheme.typography.body1)
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = "${eta.stopEta.eta?.let { getTimeDiff(it) }?:"-"}mins",style = MaterialTheme.typography.body1)
+            }
+        }
+    }
+}
 
 fun loadData(context: Context){
     val sharedPreferences = context.getSharedPreferences("shared preference", Context.MODE_PRIVATE)
@@ -75,7 +114,7 @@ fun loadData(context: Context){
     val json = sharedPreferences.getString("stop list", null)
 
     markedStops = if (json == null){
-        mutableListOf<EtaDataWithBusStopName>()
+        mutableListOf<StationInfoWithName>()
     }
     else{
         gson.fromJson(json)
