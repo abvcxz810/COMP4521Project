@@ -100,8 +100,8 @@ fun BookmarkItem(
                 Text(text = eta.busStopName, style = MaterialTheme.typography.body1)
             }
             Column(modifier = Modifier.weight(2f)) {
-                Text(text = "", style = MaterialTheme.typography.body1)
-                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = "往${eta.stopEta.dest_tc}", style = MaterialTheme.typography.body1)
+                Text(text = "To ${eta.stopEta.dest_en}", style = MaterialTheme.typography.body1)
                 Text(text = "${eta.stopEta.eta?.let { getTimeDiff(it) }?:"-"} 分鐘/mins (${eta.stopEta.eta?.let { extractTime(it) }?:eta.stopEta.rmk_tc})",style = MaterialTheme.typography.body1)
             }
         }
