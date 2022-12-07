@@ -102,18 +102,19 @@ fun BookmarkItem(
                 Text(text = (eta.stopEtaList[0].route), style = MaterialTheme.typography.h6)
                 Text(text = eta.busStopName, style = MaterialTheme.typography.body1)
             }
+            Log.i("test", eta.stopEtaList.size.toString())
             Column(modifier = Modifier.weight(2f)) {
                 Text(text = "往${eta.stopEtaList[0].dest_tc}", style = MaterialTheme.typography.body1)
                 Text(text = "To ${eta.stopEtaList[0].dest_en}", style = MaterialTheme.typography.body1)
                 Text(text = "${eta.stopEtaList[0].eta?.let { getTimeDiff(it) }?:"-"} 分鐘/mins (" +
                         "${eta.stopEtaList[0].eta?.let { extractTime(it) }?:eta.stopEtaList[0].rmk_tc})",
                     style = MaterialTheme.typography.body1)
-                if (eta.stopEtaList.size == 2 || eta.stopEtaList.size == 3 ){
+                if (eta.stopEtaList.size >=2  ){
                     Text(text = "${eta.stopEtaList[1].eta?.let { getTimeDiff(it) }?:"-"} 分鐘/mins (" +
                             "${eta.stopEtaList[1].eta?.let { extractTime(it) }?:eta.stopEtaList[1].rmk_tc})",
                         style = MaterialTheme.typography.body1)
                 }
-                if (eta.stopEtaList.size == 3){
+                if (eta.stopEtaList.size >= 3){
                     Text(text = "${eta.stopEtaList[2].eta?.let { getTimeDiff(it) }?:"-"} 分鐘/mins (" +
                             "${eta.stopEtaList[2].eta?.let { extractTime(it) }?:eta.stopEtaList[2].rmk_tc})",
                         style = MaterialTheme.typography.body1)
