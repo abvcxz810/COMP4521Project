@@ -28,6 +28,7 @@ var markedStops = mutableListOf<StationInfoWithName>()
 
 @Composable
 fun Bookmark(marsViewModel: MarsViewModel){
+
     when (marsViewModel.stopEtaUiState){
         is StopEtaUiState.Success -> BookmarkList((marsViewModel.stopEtaUiState as StopEtaUiState.Success).bookmarkList)
         is StopEtaUiState.Loading -> LoadingScreen()
@@ -85,6 +86,7 @@ fun BookmarkItem(
                     eta.stopEta.dir == stops.routeStation.bound &&
                     eta.stopEta.seq.toString() == stops.routeStation.seq){
                     markedStops.remove(stops)
+                    saveData(context)
                     Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show()
                     break
                 }

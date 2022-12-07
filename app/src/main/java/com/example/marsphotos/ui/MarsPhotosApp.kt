@@ -17,9 +17,7 @@
 package com.example.marsphotos.ui
 
 import android.util.Log
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -145,9 +143,20 @@ fun MarsPhotosApp(
             }
 
             composable(route = kmbScreen.Bookmark.name) {
-                if (markedStops.isNotEmpty()) marsViewModel.getBookmarkEta()
+                if (markedStops.isNotEmpty()) {marsViewModel.getBookmarkEta()
                 marsViewModel.updateTopBarUIByPassingString("Bookmark")
-                Bookmark(marsViewModel)
+                Bookmark(marsViewModel)}
+                else
+                    Column(
+                        Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Click a stop information card to bookmark it!",
+                            textAlign = TextAlign.Center
+                        )
+                    }
             }
         }
     }

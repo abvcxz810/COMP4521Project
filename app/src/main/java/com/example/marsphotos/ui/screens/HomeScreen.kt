@@ -151,7 +151,13 @@ fun RouteDataList(routeDataList: List<RouteData>, onRouteItemClicked: (String,St
             else{
                 val resultList = ArrayList<RouteData>()
                 for (route in routeDataList){
-                    if (route.route.startsWith(searchedRoute,ignoreCase = true)){
+                    if (route.route.startsWith(searchedRoute,ignoreCase = true) ||
+                        route.dest_en.contains(searchedRoute, ignoreCase = true) ||
+                        route.dest_tc.contains(searchedRoute, ignoreCase = true) ||
+                        route.dest_sc.contains(searchedRoute, ignoreCase = true) ||
+                        route.orig_en.contains(searchedRoute, ignoreCase = true) ||
+                        route.orig_tc.contains(searchedRoute, ignoreCase = true) ||
+                        route.orig_sc.contains(searchedRoute, ignoreCase = true)){
                         resultList.add(route)
                     }
             }
