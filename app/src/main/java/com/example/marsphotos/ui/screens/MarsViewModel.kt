@@ -171,7 +171,7 @@ class MarsViewModel : ViewModel() {
                 if (markedStops.isNotEmpty()){
                     for (stops in markedStops){
                         val getETA = MarsApi.retrofitService.getStopETA(stops.routeStation.stop, stops.routeStation.route)
-                        stopEtaList.add(StopEtaWithName(stops.busStopName,getETA.data[0]))
+                        stopEtaList.add(StopEtaWithName(stops.busStopName,getETA.data))
                     }
                 }
 
@@ -194,7 +194,7 @@ class StationInfoWithName(
 
 class StopEtaWithName(
     val busStopName: String,
-    val stopEta: StopEta
+    val stopEtaList: List<StopEta>
 )
 
 class EtaDataWithBusStopName(

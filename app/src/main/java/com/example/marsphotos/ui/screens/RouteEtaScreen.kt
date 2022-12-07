@@ -6,12 +6,12 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Card
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -137,6 +137,19 @@ fun ETAItem(
                     } ?: ""
                 })", style = MaterialTheme.typography.body1)
             }
+            var bookmarked = false
+            if (markedStops.isNotEmpty()) {
+                for (stops in markedStops) {
+                    if (eta.eta.route == stops.routeStation.route &&
+                        eta.eta.dir == stops.routeStation.bound &&
+                        eta.eta.seq.toString() == stops.routeStation.seq
+                    ) {
+                        bookmarked = true
+                        break
+                    }
+                }
+            }
+            Icon(imageVector = Icons.Outlined.Star, contentDescription = "Icon", Modifier.alpha(if (!bookmarked) 0.0F else 1.0F))
         }
     }
 }

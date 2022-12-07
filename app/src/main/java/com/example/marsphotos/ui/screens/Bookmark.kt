@@ -81,10 +81,11 @@ fun BookmarkItem(
 
         // Removes the clicked item
         onClick = {
+            Log.i("list", markedStops.toString())
             for (stops in markedStops){
-                if (eta.stopEta.route == stops.routeStation.route &&
-                    eta.stopEta.dir == stops.routeStation.bound &&
-                    eta.stopEta.seq.toString() == stops.routeStation.seq){
+                if (eta.stopEtaList[0].route == stops.routeStation.route &&
+                    eta.stopEtaList[0].dir == stops.routeStation.bound &&
+                    eta.stopEtaList[0].seq.toString() == stops.routeStation.seq){
                     markedStops.remove(stops)
                     saveData(context)
                     Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show()
@@ -98,13 +99,25 @@ fun BookmarkItem(
             Column(modifier = Modifier
                 .padding(end = 16.dp)
                 .weight(1f)) {
-                Text(text = (eta.stopEta.route), style = MaterialTheme.typography.h6)
+                Text(text = (eta.stopEtaList[0].route), style = MaterialTheme.typography.h6)
                 Text(text = eta.busStopName, style = MaterialTheme.typography.body1)
             }
             Column(modifier = Modifier.weight(2f)) {
-                Text(text = "往${eta.stopEta.dest_tc}", style = MaterialTheme.typography.body1)
-                Text(text = "To ${eta.stopEta.dest_en}", style = MaterialTheme.typography.body1)
-                Text(text = "${eta.stopEta.eta?.let { getTimeDiff(it) }?:"-"} 分鐘/mins (${eta.stopEta.eta?.let { extractTime(it) }?:eta.stopEta.rmk_tc})",style = MaterialTheme.typography.body1)
+                Text(text = "往${eta.stopEtaList[0].dest_tc}", style = MaterialTheme.typography.body1)
+                Text(text = "To ${eta.stopEtaList[0].dest_en}", style = MaterialTheme.typography.body1)
+                Text(text = "${eta.stopEtaList[0].eta?.let { getTimeDiff(it) }?:"-"} 分鐘/mins (" +
+                        "${eta.stopEtaList[0].eta?.let { extractTime(it) }?:eta.stopEtaList[0].rmk_tc})",
+                    style = MaterialTheme.typography.body1)
+                if (eta.stopEtaList.size == 2 || eta.stopEtaList.size == 3 ){
+                    Text(text = "${eta.stopEtaList[1].eta?.let { getTimeDiff(it) }?:"-"} 分鐘/mins (" +
+                            "${eta.stopEtaList[1].eta?.let { extractTime(it) }?:eta.stopEtaList[1].rmk_tc})",
+                        style = MaterialTheme.typography.body1)
+                }
+                if (eta.stopEtaList.size == 3){
+                    Text(text = "${eta.stopEtaList[2].eta?.let { getTimeDiff(it) }?:"-"} 分鐘/mins (" +
+                            "${eta.stopEtaList[2].eta?.let { extractTime(it) }?:eta.stopEtaList[2].rmk_tc})",
+                        style = MaterialTheme.typography.body1)
+                }
             }
         }
     }
