@@ -143,8 +143,8 @@ fun MarsPhotosApp(
             }
 
             composable(route = kmbScreen.Bookmark.name) {
-                if (markedStops.isNotEmpty()) {marsViewModel.getBookmarkEta()
                 marsViewModel.updateTopBarUIByPassingString("Bookmark")
+                if (markedStops.isNotEmpty()) {marsViewModel.getBookmarkEta()
                 Bookmark(marsViewModel)}
                 else
                     Column(

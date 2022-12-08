@@ -104,11 +104,11 @@ class MarsViewModel : ViewModel() {
                     currentRouteOutboundList.add(allStopInformation.data.find { it.stop == station.stop }!!)
                 }
                 routeEtaList.data.forEach { eta ->
-                    if (eta.dir == "I") {
+                    if (eta.dir == "I" && eta.dir == bound) {
                         listOfCurrentRouteEtaWithStationName.add(EtaDataWithBusStopName(
                             currentRouteInboundList[eta.seq - 1].name_tc,
                             eta))
-                    } else {
+                    } else if (eta.dir == "O" && eta.dir == bound) {
                         listOfCurrentRouteEtaWithStationName.add(EtaDataWithBusStopName(
                             currentRouteOutboundList[eta.seq - 1].name_tc,
                             eta))
