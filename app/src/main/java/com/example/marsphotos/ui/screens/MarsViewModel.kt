@@ -177,11 +177,13 @@ class MarsViewModel : ViewModel() {
 
                 Log.i("test bookmark", stopEtaList.toString())
                 stopEtaUiState = StopEtaUiState.Success(stopEtaList)
-
+                updateTopBarUIByPassingString("Bookmark")
             } catch (e: IOException) {
                 stopEtaUiState = StopEtaUiState.Error
+                updateTopBarUIByPassingString("Error")
             } catch (e: Exception) {
                 stopEtaUiState = StopEtaUiState.Error
+                updateTopBarUIByPassingString("Error")
             }
         }
     }
